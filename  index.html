@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>医療法人社団聖心会 阪本病院</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+  <style>
+    /* CSS Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      line-height: 1.6;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+      transition: color 0.3s ease;
+    }
+    ul {
+      list-style: none;
+    }
+    /* Variables */
+    :root {
+      --primary: #004d99;
+      --secondary: #0066cc;
+      --light: #f5f5f5;
+      --dark: #333;
+    }
+    /* コンテナ */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    /* ヘッダー */
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 20px 0;
+      text-align: center;
+    }
+    .logo {
+      font-size: 2em;
+      font-weight: bold;
+    }
+    .tagline {
+      margin-top: 5px;
+      font-size: 1.2em;
+    }
+    /* ナビゲーション */
+    nav {
+      background: var(--secondary);
+      position: relative;
+    }
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    .nav-links {
+      display: flex;
+    }
+    .nav-links li {
+      margin: 0 15px;
+      position: relative;
+    }
+    /* リンクにホバー時下線＋色変化の演出 */
+    .nav-links a, .dept-button {
+      color: #fff;
+      font-weight: bold;
+      position: relative;
+    }
+    .nav-links a::after,
+    .dept-button::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      background: var(--light);
+      left: 0;
+      bottom: -3px;
+      transition: width 0.3s ease;
+    }
+    .nav-links a:hover,
+    .dept-button:hover {
+      color: var(--light);
+    }
+    .nav-links a:hover::after,
+    .dept-button:hover::after {
+      width: 100%;
+    }
+    /* ハンバーガーメニュー（モバイル用） */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+    }
+    .hamburger span {
+      height: 3px;
+      width: 25px;
+      background: #fff;
+      margin-bottom: 4px;
+      border-radius: 5px;
+    }
+    /* ヒーロースライダー */
+    .hero-slider {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      overflow: hidden;
+    }
+    .hero-slider .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+    .hero-slider .slide.active {
+      opacity: 1;
+    }
+    .hero-slider img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .hero-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      text-align: center;
+      z-index: 2;
+    }
+    .hero-content h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+    }
+    .hero-content p {
+      font-size: 1.5em;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+    }
+    /* セクションタイトル */
+    .section-title {
+      text-align: center;
+      font-size: 2.5em;
+      margin-bottom: 40px;
+      color: var(--primary);
+      position: relative;
+    }
+    .section-title::after {
+      content: '';
+      width: 80px;
+      height: 4px;
+      background: var(--secondary);
+      display: block;
+      margin: 10px auto 0;
+    }
+    /* グリッドレイアウト */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+    .grid-item {
+      background: var(--light);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .grid-item h3 {
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+    .grid-item p {
+      margin-bottom: 10px;
+    }
+    .placeholder-image {
+      width: 100%;
+      height: 200px;
+      background: #ccc;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      color: #666;
+    }
+    /* 部門ボタン */
+    .dept-links {
+      text-align: center;
+      margin: 40px 0;
+    }
+    .dept-links a.dept-button {
+      display: inline-block;
+      margin: 0 10px 10px;
+      padding: 10px 20px;
+      border: 2px solid var(--primary);
+      border-radius: 4px;
+      color: var(--primary);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .dept-links a.dept-button:hover {
+      background: var(--primary);
+      color: var(--light);
+    }
+    /* アクセス用マップ */
+    .access-map {
+      width: 100%;
+      height: 400px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+    .access-map iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    /* セクション */
+    section {
+      padding: 60px 0;
+      background: #fff;
+      margin-bottom: 20px;
+    }
+    /* フッター */
+    footer {
+      background: var(--primary);
+      color: #fff;
+      text-align: center;
+      padding: 20px 0;
+    }
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+      }
+      .nav-links li {
+        margin: 10px 0;
+      }
+      .hamburger {
+        display: flex;
+      }
+      nav.active .nav-links {
+        display: flex;
+      }
+      .hero-slider {
+        height: 400px;
+      }
+      .hero-content h1 {
+        font-size: 2.5em;
+      }
+      .hero-content p {
+        font-size: 1.2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header>
+    <div class="container">
+      <div class="logo">阪本病院</div>
+      <div class="tagline">医療法人社団聖心会 阪本病院 - 香川県東かがわ市</div>
+    </div>
+  </header>
+
+  <!-- ナビゲーション -->
+  <nav id="navbar">
+    <div class="nav-container container">
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#home" class="link-underline">ホーム</a></li>
+        <li><a href="#about" class="link-underline">病院概要</a></li>
+        <li><a href="#history" class="link-underline">沿革・挨拶</a></li>
+        <li><a href="#services" class="link-underline">診療科目・サービス</a></li>
+        <li><a href="#access" class="link-underline">交通アクセス</a></li>
+        <li><a href="#contact" class="link-underline">お問い合わせ</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ヒーロースライダー -->
+  <section id="home">
+    <div class="hero-slider" id="hero-slider">
+      <!-- スライド1 -->
+      <div class="slide active">
+        <img src="https://www.sakamoto-hosp.or.jp/sakamoto/updata/images/top/img_mainimg01.jpg" alt="スライド1">
+      </div>
+      <!-- スライド2 -->
+      <div class="slide">
+        <img src="https://i.ansinkaigo.jp/shokai/assets/images/temporary_posted_image2.dfeb4ca50e2f87887d6f.jpg" alt="スライド2">
+      </div>
+      <!-- スライド3 -->
+      <div class="slide">
+        <img src="https://www.higashikagawa-syusyoku.jp/admin/upload/20120214132917531413.jpg" alt="スライド3">
+      </div>
+      <!-- スライド4 -->
+      <div class="slide">
+        <img src="https://www.nursejinzaibank.com/_next/image/?url=%2Ffront%2Fsys%2F201148%2FJ66kMj9lgIiFpiYA84sN7nmKIsuQd2kfsme3PELp.jpg&w=1080&q=75" alt="スライド4">
+      </div>
+    </div>
+    <div class="hero-content">
+      <h1>医療法人社団聖心会 阪本病院</h1>
+      <p>最先端の医療技術と温かいケアで地域に貢献</p>
+    </div>
+  </section>
+
+  <!-- 病院概要 -->
+  <section id="about">
+    <div class="container">
+      <h2 class="section-title">病院概要</h2>
+      <div class="grid">
+        <div class="grid-item">
+          <div class="placeholder-image">画像1</div>
+          <h3>基本情報</h3>
+          <p><strong>名称:</strong> 医療法人社団聖心会 阪本病院</p>
+          <p><strong>所在地:</strong> 〒769-2602 香川県東かがわ市川東103番地1</p>
+          <p><strong>連絡先:</strong> TEL: 0879-25-1121 / FAX: 0879-25-1122</p>
+          <p><strong>ホームページ:</strong> <a href="http://www.sakamoto-hosp.or.jp" target="_blank" class="link-underline">http://www.sakamoto-hosp.or.jp</a></p>
+          <p><strong>最寄り駅:</strong> JR高徳線「三本松駅」 徒歩約5分</p>
+        </div>
+        <div class="grid-item">
+          <div class="placeholder-image">画像2</div>
+          <h3>病床数・スタッフ</h3>
+          <p><strong>病床数:</strong> 一般病床52床、療養病床56床（合計108床）</p>
+          <p><strong>スタッフ:</strong> 常勤医師8名、非常勤医師21名、総勢約170名</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 沿革・理事長挨拶 -->
+  <section id="history">
+    <div class="container">
+      <h2 class="section-title">沿革・挨拶</h2>
+      <div class="grid">
+        <div class="grid-item">
+          <div class="placeholder-image">画像3</div>
+          <h3>沿革</h3>
+          <p>1967年（昭和42年）に阪本整形外科医院として開院。平成11年に阪本病院へ組織変更し、平成15年9月に医療法人化。その後、平成19年9月12日には一般病床52床・療養病床56床（計108床）へ増床し、着実に成長を遂げました。</p>
+        </div>
+        <div class="grid-item">
+          <div class="placeholder-image">画像4</div>
+          <h3>理事長挨拶</h3>
+          <p>理事長 阪本一樹は、地域の皆様に信頼される医療機関を目指し、最先端の医療技術と温かいケアを提供するため、日々努力を重ねています。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 診療科目・サービス -->
+  <section id="services">
+    <div class="container">
+      <h2 class="section-title">診療科目・サービス</h2>
+      <div class="grid">
+        <div class="grid-item">
+          <div class="placeholder-image">画像5</div>
+          <h3>診療科目</h3>
+          <p>整形外科、脳神経外科、外科、消化器外科、肛門外科、呼吸器外科、乳腺外科、形成外科、皮膚科、泌尿器科、内科、呼吸器内科、リハビリテーション科、放射線科、リウマチ科、麻酔科、歯科、<br>小児歯科、歯科口腔外科</p>
+        </div>
+        <div class="grid-item">
+          <div class="placeholder-image">画像6</div>
+          <h3>専門外来・先進医療</h3>
+          <p>認知症専門外来、禁煙指導、睡眠障害専門外来、オンライン診療、マイナンバーカードを活用した診療情報の管理など、先進的な医療サービスを展開しています。</p>
+        </div>
+      </div>
+      <!-- 診療科目一覧（部門リンク） -->
+      <div class="dept-links">
+        <a href="internal.html" class="dept-button link-underline">内科</a>
+        <a href="surgery.html" class="dept-button link-underline">外科</a>
+        <a href="rehabilitation.html" class="dept-button link-underline">リハビリテーション科</a>
+        <a href="plastic.html" class="dept-button link-underline">形成外科</a>
+        <!-- 必要に応じて他のリンクを追加 -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 交通アクセス -->
+  <section id="access">
+    <div class="container">
+      <h2 class="section-title">交通アクセス</h2>
+      <div class="grid">
+        <div class="grid-item">
+          <div class="placeholder-image">画像7</div>
+          <h3>公共交通機関でお越しの方</h3>
+          <p>JR高徳線「三本松駅」から徒歩約5分。また、近隣のバス停「当雀」からもアクセス可能です。</p>
+          <p><strong>バス例:</strong> 当雀停留所から徒歩1分</p>
+        </div>
+        <div class="grid-item">
+          <div class="placeholder-image">画像8</div>
+          <h3>お車でお越しの方</h3>
+          <p>無料駐車場60台完備。お車でご来院の場合は、混雑状況をご確認の上ご利用ください。</p>
+          <p><strong>駐車場:</strong> 60台（無料）</p>
+        </div>
+      </div>
+      <div class="access-map">
+        <iframe src="https://g.co/kgs/jJf3PYi" allowfullscreen="" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- お問い合わせ -->
+  <section id="contact">
+    <div class="container">
+      <h2 class="section-title">お問い合わせ</h2>
+      <div class="grid">
+        <div class="grid-item">
+          <div class="placeholder-image">画像9</div>
+          <h3>ご連絡先</h3>
+          <p><strong>電話番号:</strong> 0879-25-1121</p>
+          <p><strong>FAX番号:</strong> 0879-25-1122</p>
+          <p>メールフォーム：後日追加予定</p>
+        </div>
+        <div class="grid-item">
+          <!-- 画像10として指定の画像を使用 -->
+          <img src="https://www.idm-hcg.co.jp/sakamoto/hospital/image/kannai/1f.gif" alt="画像10" style="width:100%; height:auto; border-radius:8px; margin-bottom:15px;">
+          <h3>所在地</h3>
+          <p><strong>住所:</strong> 〒769-2602 香川県東かがわ市川東103番地1</p>
+          <p>地図やルート案内もご利用いただけます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- フッター -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 医療法人社団聖心会 阪本病院. All Rights Reserved.</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript: ナビゲーションとヒーロースライダー -->
+  <script>
+    // モバイル用ナビゲーション
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('nav-links');
+    const navbar = document.getElementById('navbar');
+
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+      navbar.classList.toggle('active');
+    });
+
+    // ヒーロースライダー
+    const slides = document.querySelectorAll('#hero-slider .slide');
+    let currentSlide = 0;
+    const slideInterval = setInterval(nextSlide, 5000); // 5秒ごとに切り替え
+
+    function nextSlide() {
+      slides[currentSlide].classList.remove('active');
+      currentSlide = (currentSlide + 1) % slides.length;
+      slides[currentSlide].classList.add('active');
+    }
+  </script>
+</body>
+</html>
