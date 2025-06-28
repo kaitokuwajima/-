@@ -1,229 +1,152 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { Habit } from './types';
-import { getHabits, saveHabits } from './services/localStorageService';
-import { getMotivationalQuote, getHabitSuggestions, getReflectionPrompt } from './services/geminiService';
-import Navbar from './components/Navbar';
-import HabitList from './components/HabitList';
-import HabitForm from './components/HabitForm';
-import MotivationalMessage from './components/MotivationalMessage';
-import HabitSuggester from './components/HabitSuggester';
-import ReflectionModal from './components/ReflectionModal';
-import Footer from './components/Footer';
-import { AddIcon, LightBulbIcon, SparklesIcon } from './components/Icons';
+import Calendar from './components/Calendar.tsx';
+import RecentActivitySidebar from './components/RecentActivitySidebar.tsx';
+import ActionModal from './components/ActionModal.tsx';
+import { getLeaveRequests, addLeaveEntry, deleteLeaveEntry } from './services/googleSheetService.ts';
+import { LeaveRequest, LeaveType } from './types.ts';
 
-const App: React.FC = () => {
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [isLoadingHabits, setIsLoadingHabits] = useState<boolean>(true);
-  const [isLoadingGemini, setIsLoadingGemini] = useState<boolean>(false);
-  const [motivationalQuote, setMotivationalQuote] = useState<string>('');
-  const [geminiError, setGeminiError] = useState<string | null>(null);
-  const [showHabitForm, setShowHabitForm] = useState<boolean>(false);
-  const [showHabitSuggester, setShowHabitSuggester] = useState<boolean>(false);
-  const [showReflectionModal, setShowReflectionModal] = useState<boolean>(false);
-  const [reflectionPrompt, setReflectionPrompt] = useState<string>('');
+function App() {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [employeeName, setEmployeeName] = useState('山田');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
-  useEffect(() => {
-    const loadedHabits = getHabits();
-    setHabits(loadedHabits);
-    setIsLoadingHabits(false);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoadingHabits) { // Ensure habits are loaded before saving
-      saveHabits(habits);
-    }
-  }, [habits, isLoadingHabits]);
-
-  const fetchMotivationalQuote = useCallback(async () => {
-    setIsLoadingGemini(true);
-    setGeminiError(null);
+  const fetchRequests = useCallback(async () => {
     try {
-      const quote = await getMotivationalQuote();
-      setMotivationalQuote(quote);
-    } catch (error) {
-      console.error("Failed to fetch motivational quote:", error);
-      setGeminiError("心に響く言葉を取得できませんでした。後でもう一度お試しください。");
+      setIsLoading(true);
+      const requests = await getLeaveRequests();
+      setLeaveRequests(requests);
+    } catch (e: any) {
+      setError('予定の読み込みに失敗しました。ページを再読み込みしてください。');
+      console.error(e);
     } finally {
-      setIsLoadingGemini(false);
+      setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchMotivationalQuote();
-  }, [fetchMotivationalQuote]);
+    fetchRequests();
+  }, [fetchRequests]);
 
-  const fetchNewReflectionPrompt = useCallback(async () => {
-    setIsLoadingGemini(true);
-    setGeminiError(null);
-    try {
-      const prompt = await getReflectionPrompt();
-      setReflectionPrompt(prompt);
-      setShowReflectionModal(true);
-    } catch (error) {
-      console.error("Failed to fetch reflection prompt:", error);
-      setGeminiError("振り返りのプロンプトを取得できませんでした。後でもう一度お試しください。");
-    } finally {
-      setIsLoadingGemini(false);
+  const handlePrevMonth = () => {
+    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    setIsActionModalOpen(true);
+  };
+
+  const handleCloseActionModal = () => {
+      setIsActionModalOpen(false);
+  };
+
+  const handleAddLeave = useCallback(async (type: LeaveType, comment?: string) => {
+    if (!selectedDate) {
+        throw new Error('日付が選択されていません。');
     }
-  }, []);
+    if (!employeeName.trim()) {
+      const err = "予定を登録する前に、右上の入力欄にあなたの名前を入力してください。";
+      setError(err);
+      throw new Error(err);
+    }
+    setError(null);
+    try {
+      const dateString = selectedDate.toISOString().split('T')[0];
+      await addLeaveEntry(dateString, employeeName, type, comment);
+      await fetchRequests();
+    } catch (e: any) {
+      setError(e.message || '登録に失敗しました。');
+      throw e; // Re-throw for the modal to handle its state
+    }
+  }, [selectedDate, employeeName, fetchRequests]);
 
-
-  const getTodayDateString = (): string => {
-    return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  };
-
-  const addHabit = (name: string, description?: string) => {
-    const newHabit: Habit = {
-      id: crypto.randomUUID(),
-      name,
-      description,
-      createdAt: new Date().toISOString(),
-      completions: [],
-      currentStreak: 0,
-      longestStreak: 0,
-    };
-    setHabits(prevHabits => [newHabit, ...prevHabits]);
-    setShowHabitForm(false);
-  };
-
-  const deleteHabit = (id: string) => {
-    setHabits(prevHabits => prevHabits.filter(habit => habit.id !== id));
-  };
-
-  const toggleHabitCompletion = (id: string) => {
-    const today = getTodayDateString();
-    setHabits(prevHabits =>
-      prevHabits.map(habit => {
-        if (habit.id === id) {
-          const alreadyCompletedToday = habit.completions.some(c => c.date === today);
-          if (alreadyCompletedToday) {
-            // Undo completion for today
-            const updatedCompletions = habit.completions.filter(c => c.date !== today);
-            // Recalculate streak (this is simplified, a full robust recalc would be more complex)
-            let newCurrentStreak = 0;
-            if (updatedCompletions.length > 0) {
-                 // Simplified: if last completion was yesterday, keep streak, otherwise reset.
-                 // This part needs more robust logic if undoing affects streak significantly.
-                 // For this version, undoing resets streak if it was the only one in sequence.
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayStr = yesterday.toISOString().split('T')[0];
-                if (updatedCompletions.find(c => c.date === yesterdayStr)) {
-                    newCurrentStreak = habit.currentStreak > 0 ? habit.currentStreak -1 : 0; // Approximate
-                }
-            }
-            return {
-              ...habit,
-              completions: updatedCompletions,
-              currentStreak: newCurrentStreak, // This part might need more complex logic
-              lastCompletionDate: updatedCompletions.length > 0 ? updatedCompletions[updatedCompletions.length - 1].date : undefined
-            };
-          } else {
-            // Mark as complete
-            let newCurrentStreak = habit.currentStreak;
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-            if (habit.lastCompletionDate === yesterdayStr) {
-              newCurrentStreak++;
-            } else {
-              newCurrentStreak = 1;
-            }
-            
-            const newLongestStreak = Math.max(habit.longestStreak, newCurrentStreak);
-
-            return {
-              ...habit,
-              completions: [...habit.completions, { date: today }],
-              currentStreak: newCurrentStreak,
-              longestStreak: newLongestStreak,
-              lastCompletionDate: today,
-            };
-          }
-        }
-        return habit;
-      })
-    );
-    // Optionally fetch a new quote on completion
-    // fetchMotivationalQuote(); 
-  };
-  
-  if (isLoadingHabits) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-sky-100">
-        <div className="text-xl font-semibold text-sky-700">習慣を読み込んでいます...</div>
-      </div>
-    );
-  }
+  const handleDeleteLeave = useCallback(async (id: string) => {
+    setError(null);
+    try {
+      await deleteLeaveEntry(id);
+      await fetchRequests();
+    } catch (e: any) {
+      setError(e.message || '削除に失敗しました。');
+    }
+  }, [fetchRequests]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <MotivationalMessage quote={motivationalQuote} isLoading={isLoadingGemini} error={geminiError} onRefresh={fetchMotivationalQuote} />
+    <div className="min-h-screen bg-gray-100 text-gray-800 font-sans">
+      <header className="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-20">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-800">共有休み希望カレンダー</h1>
+        <div className="flex items-center space-x-2">
+          <label htmlFor="employeeName" className="text-sm font-medium text-gray-700 hidden sm:block">あなたの名前:</label>
+          <input
+            type="text"
+            id="employeeName"
+            value={employeeName}
+            onChange={(e) => setEmployeeName(e.target.value)}
+            placeholder="名前を入力"
+            className="w-32 sm:w-48 px-3 py-1.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            aria-label="あなたの名前"
+          />
+        </div>
+      </header>
 
-        <div className="my-8 flex flex-col sm:flex-row justify-center items-center gap-4">
-          <button
-            onClick={() => setShowHabitForm(true)}
-            className="flex items-center justify-center bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 w-full sm:w-auto"
-          >
-            <AddIcon className="w-5 h-5 mr-2" />
-            新しい習慣を追加
-          </button>
-          <button
-            onClick={() => setShowHabitSuggester(true)}
-            className="flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 w-full sm:w-auto"
-          >
-            <LightBulbIcon className="w-5 h-5 mr-2" />
-            習慣のアイデアを見る (AI)
-          </button>
-           <button
-            onClick={fetchNewReflectionPrompt}
-            disabled={isLoadingGemini}
-            className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 disabled:opacity-50 w-full sm:w-auto"
-          >
-            <SparklesIcon className="w-5 h-5 mr-2" />
-            今日の振り返り (AI)
-          </button>
+      <main className="flex flex-col lg:flex-row p-4 gap-6 max-w-screen-2xl mx-auto">
+        <div className="flex-grow lg:w-3/4">
+          {error && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md shadow" role="alert" aria-live="assertive">
+              <div className="flex justify-between items-center">
+                <div>
+                    <p className="font-bold">エラー</p>
+                    <p>{error}</p>
+                </div>
+                <button onClick={() => setError(null)} className="p-1 rounded-full hover:bg-red-200" aria-label="エラーを閉じる">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
+          )}
+          {isLoading ? (
+            <div className="flex items-center justify-center h-96 bg-white rounded-xl shadow-lg">
+              <svg className="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span className="ml-3 text-lg text-gray-600">カレンダーを読み込み中...</span>
+            </div>
+          ) : (
+            <Calendar
+              currentDate={currentDate}
+              leaveRequests={leaveRequests}
+              onDateClick={handleDateClick}
+              onPrevMonth={handlePrevMonth}
+              onNextMonth={handleNextMonth}
+              onDeleteLeave={handleDeleteLeave}
+              currentUser={employeeName}
+              selectedDate={selectedDate}
+            />
+          )}
         </div>
 
-        {showHabitForm && (
-          <HabitForm
-            onAddHabit={addHabit}
-            onClose={() => setShowHabitForm(false)}
-          />
-        )}
-
-        {showHabitSuggester && (
-          <HabitSuggester
-            onAddSuggestedHabit={(name, description) => {
-              addHabit(name, description);
-              setShowHabitSuggester(false);
-            }}
-            onClose={() => setShowHabitSuggester(false)}
-            getHabitSuggestions={getHabitSuggestions}
-          />
-        )}
-
-        {showReflectionModal && reflectionPrompt && (
-          <ReflectionModal
-            prompt={reflectionPrompt}
-            onClose={() => setShowReflectionModal(false)}
-            isLoading={isLoadingGemini}
-          />
-        )}
-        
-        <HabitList
-          habits={habits}
-          onToggleComplete={toggleHabitCompletion}
-          onDelete={deleteHabit}
-        />
+        <aside className="w-full lg:w-1/4 lg:max-w-sm flex-shrink-0">
+          <RecentActivitySidebar requests={leaveRequests} />
+        </aside>
       </main>
-      <Footer />
+      
+      <ActionModal 
+        isOpen={isActionModalOpen}
+        onClose={handleCloseActionModal}
+        selectedDate={selectedDate}
+        employeeName={employeeName}
+        onAddLeave={handleAddLeave}
+      />
     </div>
   );
-};
+}
 
 export default App;

@@ -1,5 +1,5 @@
 {
-  "name": "Habit Optimizer",
-  "description": "An application to help you build, track, and optimize your habits with AI-powered insights and motivation.",
+  "name": "共有休み希望カレンダー",
+  "description": "従業員が休暇希望やコメントを共有カレンダーに登録できるウェブアプリケーションです。",
   "requestFramePermissions": []
 }

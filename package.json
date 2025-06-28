@@ -1,5 +1,5 @@
 {
-  "name": "habit-optimizer",
+  "name": "共有休み希望カレンダー",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,8 +10,7 @@
   },
   "dependencies": {
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@google/genai": "^1.4.0"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
