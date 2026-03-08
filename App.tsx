@@ -4,6 +4,7 @@ import DashboardView from './views/DashboardView.tsx';
 import CalendarView from './views/CalendarView.tsx';
 import TaskView from './views/TaskView.tsx';
 import PatientView from './views/PatientView.tsx';
+import EmployeeView from './views/EmployeeView.tsx';
 import { ViewType, LeaveRequest, Task, Patient } from './types.ts';
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
     calendar:  '休み管理',
     tasks:     'タスク管理',
     patients:  '患者情報',
+    employees: '従業員管理',
   };
 
   return (
@@ -101,6 +103,9 @@ function App() {
           )}
           {currentView === 'patients' && (
             <PatientView onPatientDataChange={handlePatientDataChange} />
+          )}
+          {currentView === 'employees' && (
+            <EmployeeView />
           )}
         </main>
 

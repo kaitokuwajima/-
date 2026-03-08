@@ -36,11 +36,21 @@ const icons = {
   ),
 };
 
+const icons_employees = (
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'ダッシュボード', icon: icons.dashboard },
   { id: 'calendar',  label: '休み管理',       icon: icons.calendar  },
   { id: 'tasks',     label: 'タスク管理',     icon: icons.tasks     },
   { id: 'patients',  label: '患者情報',       icon: icons.patients  },
+  { id: 'employees', label: '従業員管理',     icon: icons_employees },
 ];
 
 interface SidebarProps {

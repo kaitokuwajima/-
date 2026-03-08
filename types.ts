@@ -51,5 +51,27 @@ export interface Patient {
   createdAt: string;
 }
 
+// ---- 従業員情報 ----
+export type EmploymentType = '正社員' | 'パート' | 'アルバイト' | '契約社員';
+export type EmployeeStatus = '在職' | '休職' | '退職';
+
+export interface Employee {
+  id: string;
+  employeeCode: string;
+  name: string;
+  nameKana: string;
+  department: string;
+  position: string;
+  employmentType: EmploymentType;
+  hireDate: string;
+  birthDate?: string;
+  phone?: string;
+  email?: string;
+  paidLeaveDays: number;
+  usedLeaveDays: number;
+  status: EmployeeStatus;
+  notes?: string;
+}
+
 // ---- ナビゲーション ----
-export type ViewType = 'dashboard' | 'calendar' | 'tasks' | 'patients';
+export type ViewType = 'dashboard' | 'calendar' | 'tasks' | 'patients' | 'employees';
