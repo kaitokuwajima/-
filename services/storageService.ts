@@ -1,6 +1,5 @@
-import { LeaveRequest, LeaveType, LEAVE_TYPES, Task, TaskStatus, TaskPriority, Patient } from '../types.ts';
+import { LeaveRequest, LeaveType, LEAVE_TYPES, Task, Employee } from '../types.ts';
 
-// ---- ヘルパー ----
 function getTodayPlusDays(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -11,7 +10,6 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-// ---- 初期データ ----
 const INITIAL_LEAVE_REQUESTS: LeaveRequest[] = [
   { id: '1', date: getTodayPlusDays(2), employeeName: '佐藤', type: LEAVE_TYPES.PAID_LEAVE },
   { id: '2', date: getTodayPlusDays(2), employeeName: '鈴木', type: LEAVE_TYPES.AM_OFF },
@@ -64,50 +62,50 @@ const INITIAL_TASKS: Task[] = [
   },
 ];
 
-const INITIAL_PATIENTS: Patient[] = [
+const INITIAL_EMPLOYEES: Employee[] = [
   {
-    id: 'p1',
-    name: '田中 花子',
-    nameKana: 'タナカ ハナコ',
-    birthDate: '1975-04-15',
-    gender: 'female',
-    phone: '090-1234-5678',
-    address: '東京都新宿区...',
-    notes: 'アレルギー: ペニシリン',
-    lastVisit: getTodayPlusDays(-7),
-    nextAppointment: getTodayPlusDays(14),
+    id: 'e1',
+    name: '山田 太郎',
+    department: '営業部',
+    role: 'マネージャー',
+    email: 'taro.yamada@example.com',
+    phone: '090-1111-2222',
+    joinDate: '2020-04-01',
+    employmentType: 'full_time',
+    status: 'active',
+    notes: 'チームリーダー',
     createdAt: new Date().toISOString(),
   },
   {
-    id: 'p2',
-    name: '鈴木 一郎',
-    nameKana: 'スズキ イチロウ',
-    birthDate: '1960-09-22',
-    gender: 'male',
-    phone: '080-9876-5432',
-    address: '東京都渋谷区...',
-    notes: '高血圧・要経過観察',
-    lastVisit: getTodayPlusDays(-3),
-    nextAppointment: getTodayPlusDays(28),
+    id: 'e2',
+    name: '鈴木 花子',
+    department: '人事部',
+    role: '採用担当',
+    email: 'hanako.suzuki@example.com',
+    phone: '080-3333-4444',
+    joinDate: '2022-10-01',
+    employmentType: 'contract',
+    status: 'active',
     createdAt: new Date().toISOString(),
   },
   {
-    id: 'p3',
-    name: '山本 美咲',
-    nameKana: 'ヤマモト ミサキ',
-    birthDate: '1990-01-30',
-    gender: 'female',
-    phone: '070-1111-2222',
-    lastVisit: getTodayPlusDays(-14),
+    id: 'e3',
+    name: '佐藤 健',
+    department: '開発部',
+    role: 'フロントエンドエンジニア',
+    email: 'ken.sato@example.com',
+    joinDate: '2024-04-01',
+    employmentType: 'intern',
+    status: 'leave',
+    notes: '育児休業中',
     createdAt: new Date().toISOString(),
   },
 ];
 
-// ---- ストレージキー ----
 const KEYS = {
   LEAVES: 'dashboard_leaves',
   TASKS: 'dashboard_tasks',
-  PATIENTS: 'dashboard_patients',
+  EMPLOYEES: 'dashboard_employees',
 };
 
 function loadFromStorage<T>(key: string, initial: T[]): T[] {
@@ -124,7 +122,6 @@ function saveToStorage<T>(key: string, data: T[]): void {
   localStorage.setItem(key, JSON.stringify(data));
 }
 
-// ---- 休み管理 ----
 export const getLeaveRequests = async (): Promise<LeaveRequest[]> => {
   await new Promise(r => setTimeout(r, 100));
   return loadFromStorage<LeaveRequest>(KEYS.LEAVES, INITIAL_LEAVE_REQUESTS);
@@ -146,7 +143,7 @@ export const addLeaveEntry = async (
     ...(comment && { comment }),
   };
   const updated = [...requests, newRequest].sort((a, b) =>
-    new Date(a.date).getTime() - new Date(b.date).getTime()
+    new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
   saveToStorage(KEYS.LEAVES, updated);
   return newRequest;
@@ -160,7 +157,6 @@ export const deleteLeaveEntry = async (id: string): Promise<{ id: string }> => {
   return { id };
 };
 
-// ---- タスク管理 ----
 export const getTasks = async (): Promise<Task[]> => {
   await new Promise(r => setTimeout(r, 100));
   return loadFromStorage<Task>(KEYS.TASKS, INITIAL_TASKS);
@@ -189,31 +185,30 @@ export const deleteTask = async (id: string): Promise<void> => {
   saveToStorage(KEYS.TASKS, updated);
 };
 
-// ---- 患者情報 ----
-export const getPatients = async (): Promise<Patient[]> => {
+export const getEmployees = async (): Promise<Employee[]> => {
   await new Promise(r => setTimeout(r, 100));
-  return loadFromStorage<Patient>(KEYS.PATIENTS, INITIAL_PATIENTS);
+  return loadFromStorage<Employee>(KEYS.EMPLOYEES, INITIAL_EMPLOYEES);
 };
 
-export const addPatient = async (data: Omit<Patient, 'id' | 'createdAt'>): Promise<Patient> => {
-  const patients = loadFromStorage<Patient>(KEYS.PATIENTS, INITIAL_PATIENTS);
-  const newPatient: Patient = { ...data, id: generateId(), createdAt: new Date().toISOString() };
-  saveToStorage(KEYS.PATIENTS, [...patients, newPatient]);
-  return newPatient;
+export const addEmployee = async (data: Omit<Employee, 'id' | 'createdAt'>): Promise<Employee> => {
+  const employees = loadFromStorage<Employee>(KEYS.EMPLOYEES, INITIAL_EMPLOYEES);
+  const newEmployee: Employee = { ...data, id: generateId(), createdAt: new Date().toISOString() };
+  saveToStorage(KEYS.EMPLOYEES, [...employees, newEmployee]);
+  return newEmployee;
 };
 
-export const updatePatient = async (id: string, data: Partial<Patient>): Promise<Patient> => {
-  const patients = loadFromStorage<Patient>(KEYS.PATIENTS, INITIAL_PATIENTS);
-  const idx = patients.findIndex(p => p.id === id);
-  if (idx === -1) throw new Error('患者が見つかりませんでした。');
-  patients[idx] = { ...patients[idx], ...data };
-  saveToStorage(KEYS.PATIENTS, patients);
-  return patients[idx];
+export const updateEmployee = async (id: string, data: Partial<Employee>): Promise<Employee> => {
+  const employees = loadFromStorage<Employee>(KEYS.EMPLOYEES, INITIAL_EMPLOYEES);
+  const idx = employees.findIndex(e => e.id === id);
+  if (idx === -1) throw new Error('従業員が見つかりませんでした。');
+  employees[idx] = { ...employees[idx], ...data };
+  saveToStorage(KEYS.EMPLOYEES, employees);
+  return employees[idx];
 };
 
-export const deletePatient = async (id: string): Promise<void> => {
-  const patients = loadFromStorage<Patient>(KEYS.PATIENTS, INITIAL_PATIENTS);
-  const updated = patients.filter(p => p.id !== id);
-  if (updated.length === patients.length) throw new Error('患者が見つかりませんでした。');
-  saveToStorage(KEYS.PATIENTS, updated);
+export const deleteEmployee = async (id: string): Promise<void> => {
+  const employees = loadFromStorage<Employee>(KEYS.EMPLOYEES, INITIAL_EMPLOYEES);
+  const updated = employees.filter(e => e.id !== id);
+  if (updated.length === employees.length) throw new Error('従業員が見つかりませんでした。');
+  saveToStorage(KEYS.EMPLOYEES, updated);
 };

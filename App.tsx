@@ -3,18 +3,17 @@ import Sidebar from './components/Sidebar.tsx';
 import DashboardView from './views/DashboardView.tsx';
 import CalendarView from './views/CalendarView.tsx';
 import TaskView from './views/TaskView.tsx';
-import PatientView from './views/PatientView.tsx';
-import { ViewType, LeaveRequest, Task, Patient } from './types.ts';
+import EmployeeView from './views/PatientView.tsx';
+import { ViewType, LeaveRequest, Task, Employee } from './types.ts';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [employeeName, setEmployeeName] = useState('山田');
 
-  // ダッシュボード用に全データを保持
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
   const handleLeaveDataChange = useCallback((requests: LeaveRequest[]) => {
     setLeaveRequests(requests);
@@ -24,20 +23,19 @@ function App() {
     setTasks(data);
   }, []);
 
-  const handlePatientDataChange = useCallback((data: Patient[]) => {
-    setPatients(data);
+  const handleEmployeeDataChange = useCallback((data: Employee[]) => {
+    setEmployees(data);
   }, []);
 
   const viewTitles: Record<ViewType, string> = {
     dashboard: 'ダッシュボード',
-    calendar:  '休み管理',
-    tasks:     'タスク管理',
-    patients:  '患者情報',
+    calendar: '休み管理',
+    tasks: 'タスク管理',
+    employees: '従業員管理',
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* サイドバー */}
       <Sidebar
         currentView={currentView}
         onNavigate={setCurrentView}
@@ -45,12 +43,9 @@ function App() {
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      {/* メインコンテンツ */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* ヘッダー */}
         <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
           <div className="flex items-center gap-3">
-            {/* モバイルハンバーガーボタン */}
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100"
@@ -65,7 +60,6 @@ function App() {
             <h1 className="text-lg font-semibold text-gray-800">{viewTitles[currentView]}</h1>
           </div>
 
-          {/* 名前入力（休み管理で使用） */}
           <div className="flex items-center gap-2">
             <label htmlFor="employeeName" className="text-sm text-gray-500 hidden sm:block">あなたの名前:</label>
             <input
@@ -80,13 +74,12 @@ function App() {
           </div>
         </header>
 
-        {/* ビューコンテンツ */}
         <main className="flex-1 p-4 sm:p-6 max-w-screen-2xl w-full mx-auto">
           {currentView === 'dashboard' && (
             <DashboardView
               leaveRequests={leaveRequests}
               tasks={tasks}
-              patients={patients}
+              employees={employees}
               onNavigate={setCurrentView}
             />
           )}
@@ -99,13 +92,13 @@ function App() {
           {currentView === 'tasks' && (
             <TaskView onTaskDataChange={handleTaskDataChange} />
           )}
-          {currentView === 'patients' && (
-            <PatientView onPatientDataChange={handlePatientDataChange} />
+          {currentView === 'employees' && (
+            <EmployeeView onEmployeeDataChange={handleEmployeeDataChange} />
           )}
         </main>
 
         <footer className="text-center text-xs text-gray-400 py-3 border-t border-gray-100">
-          社内ダッシュボード — データはこのブラウザのローカルストレージに保存されています
+          従業員管理アプリ — データはこのブラウザのローカルストレージに保存されています
         </footer>
       </div>
     </div>

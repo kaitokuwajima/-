@@ -28,19 +28,21 @@ const icons = {
       <polyline points="3 6 4 7 6 5" /><polyline points="3 12 4 13 6 11" /><polyline points="3 18 4 19 6 17" />
     </svg>
   ),
-  patients: (
+  employees: (
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
+      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="8.5" cy="7" r="4" />
+      <line x1="20" y1="8" x2="20" y2="14" />
+      <line x1="23" y1="11" x2="17" y2="11" />
     </svg>
   ),
 };
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'ダッシュボード', icon: icons.dashboard },
-  { id: 'calendar',  label: '休み管理',       icon: icons.calendar  },
-  { id: 'tasks',     label: 'タスク管理',     icon: icons.tasks     },
-  { id: 'patients',  label: '患者情報',       icon: icons.patients  },
+  { id: 'calendar', label: '休み管理', icon: icons.calendar },
+  { id: 'tasks', label: 'タスク管理', icon: icons.tasks },
+  { id: 'employees', label: '従業員管理', icon: icons.employees },
 ];
 
 interface SidebarProps {
@@ -53,7 +55,6 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isOpen, onClose }) => {
   return (
     <>
-      {/* モバイル背景オーバーレイ */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-40 z-30 lg:hidden"
@@ -62,7 +63,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isOpen, onCl
         />
       )}
 
-      {/* サイドバー本体 */}
       <aside
         className={`
           fixed top-0 left-0 h-full w-64 bg-gray-900 text-white flex flex-col z-40
@@ -72,11 +72,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isOpen, onCl
         `}
         aria-label="メインナビゲーション"
       >
-        {/* ロゴ */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-gray-700">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold text-white text-sm">S</div>
-            <span className="font-bold text-lg tracking-wide">社内ダッシュボード</span>
+            <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold text-white text-sm">E</div>
+            <span className="font-bold text-lg tracking-wide">従業員管理アプリ</span>
           </div>
           <button
             onClick={onClose}
@@ -89,7 +88,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isOpen, onCl
           </button>
         </div>
 
-        {/* ナビゲーションリンク */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.map(item => {
             const isActive = currentView === item.id;
@@ -113,7 +111,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isOpen, onCl
           })}
         </nav>
 
-        {/* フッター */}
         <div className="px-5 py-4 border-t border-gray-700 text-xs text-gray-500">
           <p>データはこのブラウザに保存されます</p>
         </div>
