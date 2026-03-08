@@ -34,22 +34,22 @@ export interface Task {
   createdAt: string;
 }
 
-// ---- 患者情報 ----
-export type PatientGender = 'male' | 'female' | 'other';
+// ---- 従業員管理 ----
+export type EmploymentType = 'full_time' | 'contract' | 'part_time' | 'intern';
 
-export interface Patient {
+export interface Employee {
   id: string;
   name: string;
-  nameKana?: string;
-  birthDate?: string;
-  gender?: PatientGender;
+  department: string;
+  role: string;
+  email?: string;
   phone?: string;
-  address?: string;
+  joinDate?: string;
+  employmentType?: EmploymentType;
+  status: 'active' | 'leave' | 'resigned';
   notes?: string;
-  lastVisit?: string;
-  nextAppointment?: string;
   createdAt: string;
 }
 
 // ---- ナビゲーション ----
-export type ViewType = 'dashboard' | 'calendar' | 'tasks' | 'patients';
+export type ViewType = 'dashboard' | 'calendar' | 'tasks' | 'employees';

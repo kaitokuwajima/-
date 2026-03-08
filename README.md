@@ -1,14 +1,23 @@
-# Run and deploy your AI Studio app
+# 従業員管理アプリ
 
-This contains everything you need to run your app locally.
+React + Vite で作成したシンプルな従業員管理アプリです。
 
-## Run Locally
+## できること
 
-**Prerequisites:**  Node.js
+- 従業員情報の登録 / 編集 / 削除
+- 休み管理（カレンダー）
+- タスク管理
+- ダッシュボードで状況の可視化
+- データはブラウザの `localStorage` に保存
 
+## 起動方法
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. 依存関係をインストール
+   ```bash
+   npm install
+   ```
+2. 開発サーバーを起動
+   ```bash
+   npm run dev
+   ```
+3. ブラウザで `http://localhost:5173` を開く
