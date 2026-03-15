@@ -1,150 +1,106 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Calendar from './components/Calendar.tsx';
-import RecentActivitySidebar from './components/RecentActivitySidebar.tsx';
-import ActionModal from './components/ActionModal.tsx';
-import { getLeaveRequests, addLeaveEntry, deleteLeaveEntry } from './services/googleSheetService.ts';
-import { LeaveRequest, LeaveType } from './types.ts';
+import React, { useState, useCallback } from 'react';
+import Sidebar from './components/Sidebar.tsx';
+import DashboardView from './views/DashboardView.tsx';
+import CalendarView from './views/CalendarView.tsx';
+import TaskView from './views/TaskView.tsx';
+import EmployeeView from './views/PatientView.tsx';
+import { ViewType, LeaveRequest, Task, Employee } from './types.ts';
 
 function App() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [employeeName, setEmployeeName] = useState('山田');
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
-  const fetchRequests = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const requests = await getLeaveRequests();
-      setLeaveRequests(requests);
-    } catch (e: any) {
-      setError('予定の読み込みに失敗しました。ページを再読み込みしてください。');
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
+  const handleLeaveDataChange = useCallback((requests: LeaveRequest[]) => {
+    setLeaveRequests(requests);
   }, []);
 
-  useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
+  const handleTaskDataChange = useCallback((data: Task[]) => {
+    setTasks(data);
+  }, []);
 
-  const handlePrevMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  const handleEmployeeDataChange = useCallback((data: Employee[]) => {
+    setEmployees(data);
+  }, []);
+
+  const viewTitles: Record<ViewType, string> = {
+    dashboard: 'ダッシュボード',
+    calendar: '休み管理',
+    tasks: 'タスク管理',
+    employees: '従業員管理',
   };
-
-  const handleNextMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-  };
-
-  const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
-    setIsActionModalOpen(true);
-  };
-
-  const handleCloseActionModal = () => {
-      setIsActionModalOpen(false);
-  };
-
-  const handleAddLeave = useCallback(async (type: LeaveType, comment?: string) => {
-    if (!selectedDate) {
-        throw new Error('日付が選択されていません。');
-    }
-    if (!employeeName.trim()) {
-      const err = "予定を登録する前に、右上の入力欄にあなたの名前を入力してください。";
-      setError(err);
-      throw new Error(err);
-    }
-    setError(null);
-    try {
-      const dateString = selectedDate.toISOString().split('T')[0];
-      await addLeaveEntry(dateString, employeeName, type, comment);
-      await fetchRequests();
-    } catch (e: any) {
-      setError(e.message || '登録に失敗しました。');
-      throw e; // Re-throw for the modal to handle its state
-    }
-  }, [selectedDate, employeeName, fetchRequests]);
-
-  const handleDeleteLeave = useCallback(async (id: string) => {
-    setError(null);
-    try {
-      await deleteLeaveEntry(id);
-      await fetchRequests();
-    } catch (e: any) {
-      setError(e.message || '削除に失敗しました。');
-    }
-  }, [fetchRequests]);
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-800 font-sans">
-      <header className="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-20">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-800">共有休み希望カレンダー</h1>
-        <div className="flex items-center space-x-2">
-          <label htmlFor="employeeName" className="text-sm font-medium text-gray-700 hidden sm:block">あなたの名前:</label>
-          <input
-            type="text"
-            id="employeeName"
-            value={employeeName}
-            onChange={(e) => setEmployeeName(e.target.value)}
-            placeholder="名前を入力"
-            className="w-32 sm:w-48 px-3 py-1.5 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-            aria-label="あなたの名前"
-          />
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
-      <main className="flex flex-col lg:flex-row p-4 gap-6 max-w-screen-2xl mx-auto">
-        <div className="flex-grow lg:w-3/4">
-          {error && (
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md shadow" role="alert" aria-live="assertive">
-              <div className="flex justify-between items-center">
-                <div>
-                    <p className="font-bold">エラー</p>
-                    <p>{error}</p>
-                </div>
-                <button onClick={() => setError(null)} className="p-1 rounded-full hover:bg-red-200" aria-label="エラーを閉じる">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-              </div>
-            </div>
-          )}
-          {isLoading ? (
-            <div className="flex items-center justify-center h-96 bg-white rounded-xl shadow-lg">
-              <svg className="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100"
+              aria-label="メニューを開く"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
-              <span className="ml-3 text-lg text-gray-600">カレンダーを読み込み中...</span>
-            </div>
-          ) : (
-            <Calendar
-              currentDate={currentDate}
+            </button>
+            <h1 className="text-lg font-semibold text-gray-800">{viewTitles[currentView]}</h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label htmlFor="employeeName" className="text-sm text-gray-500 hidden sm:block">あなたの名前:</label>
+            <input
+              id="employeeName"
+              type="text"
+              value={employeeName}
+              onChange={e => setEmployeeName(e.target.value)}
+              placeholder="名前を入力"
+              className="w-28 sm:w-40 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              aria-label="あなたの名前"
+            />
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 sm:p-6 max-w-screen-2xl w-full mx-auto">
+          {currentView === 'dashboard' && (
+            <DashboardView
               leaveRequests={leaveRequests}
-              onDateClick={handleDateClick}
-              onPrevMonth={handlePrevMonth}
-              onNextMonth={handleNextMonth}
-              onDeleteLeave={handleDeleteLeave}
-              currentUser={employeeName}
-              selectedDate={selectedDate}
+              tasks={tasks}
+              employees={employees}
+              onNavigate={setCurrentView}
             />
           )}
-        </div>
+          {currentView === 'calendar' && (
+            <CalendarView
+              employeeName={employeeName}
+              onLeaveDataChange={handleLeaveDataChange}
+            />
+          )}
+          {currentView === 'tasks' && (
+            <TaskView onTaskDataChange={handleTaskDataChange} />
+          )}
+          {currentView === 'employees' && (
+            <EmployeeView onEmployeeDataChange={handleEmployeeDataChange} />
+          )}
+        </main>
 
-        <aside className="w-full lg:w-1/4 lg:max-w-sm flex-shrink-0">
-          <RecentActivitySidebar requests={leaveRequests} />
-        </aside>
-      </main>
-      
-      <ActionModal 
-        isOpen={isActionModalOpen}
-        onClose={handleCloseActionModal}
-        selectedDate={selectedDate}
-        employeeName={employeeName}
-        onAddLeave={handleAddLeave}
-      />
+        <footer className="text-center text-xs text-gray-400 py-3 border-t border-gray-100">
+          従業員管理アプリ — データはこのブラウザのローカルストレージに保存されています
+        </footer>
+      </div>
     </div>
   );
 }
