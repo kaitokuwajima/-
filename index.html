@@ -1,23 +1,452 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>社内ダッシュボード</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.1.0/",
-    "react": "https://esm.sh/react@^19.1.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.1.0/"
-  }
-}
-</script>
-  </head>
-  <body class="bg-gray-50">
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>リハタマ | RIHATAMA ONLY LIFE - 理学療法士YouTuber</title>
+  <meta name="description" content="リハタマの公式サイト。理学療法士（PT）として活動しながら、ルーティーン・自己啓発・勉強法などをYouTubeで発信中。日々をルーティーン化して余った時間で好きな事をする。人生を楽しもう！">
+  <meta name="keywords" content="リハタマ,理学療法士,PT,YouTube,ルーティーン,自己啓発,国家試験">
+  <meta property="og:title" content="リハタマ | RIHATAMA ONLY LIFE">
+  <meta property="og:description" content="理学療法士YouTuber リハタマの公式サイト">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Oswald:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold: #FFD700;
+      --gold-dark: #DAA520;
+      --black: #1a1a1a;
+      --white: #ffffff;
+      --gray-light: #f5f5f5;
+      --gray: #888;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--black);
+      background: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+      background: rgba(26,26,26,0.95); backdrop-filter: blur(10px);
+      padding: 0 2rem; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: box-shadow .3s;
+    }
+    .navbar.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,.3); }
+    .navbar .logo { font-family: 'Oswald', sans-serif; color: var(--gold); font-size: 1.2rem; letter-spacing: 2px; text-decoration: none; }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--white); text-decoration: none; font-size: .85rem; transition: color .3s; }
+    .nav-links a:hover { color: var(--gold); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; }
+    .hamburger span { width: 25px; height: 2px; background: var(--white); transition: .3s; }
+
+    /* ===== HERO ===== */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--black) 0%, #2a2a2a 50%, var(--black) 100%);
+      color: var(--white); text-align: center; padding: 6rem 1rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(circle at 30% 40%, rgba(255,215,0,0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 60%, rgba(255,215,0,0.05) 0%, transparent 50%);
+      animation: heroBg 20s ease infinite alternate;
+    }
+    @keyframes heroBg { 0%{transform:rotate(0deg)} 100%{transform:rotate(10deg)} }
+    .hero-content { position: relative; z-index: 1; max-width: 700px; }
+    .hero-avatar {
+      width: 160px; height: 160px; border-radius: 50%; margin: 0 auto 2rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; color: var(--black); font-weight: 900;
+      box-shadow: 0 0 40px rgba(255,215,0,0.3);
+      border: 4px solid var(--gold);
+      overflow: hidden;
+    }
+    .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .hero h1 {
+      font-family: 'Oswald', sans-serif; font-size: clamp(2.5rem, 8vw, 5rem);
+      letter-spacing: 6px; color: var(--gold);
+      text-shadow: 0 0 30px rgba(255,215,0,0.3);
+      margin-bottom: .5rem;
+    }
+    .hero .sub { font-size: 1.3rem; margin-bottom: 1rem; font-weight: 700; }
+    .hero .concept { font-size: .95rem; color: var(--gray); margin-bottom: 2.5rem; line-height: 1.8; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .9rem 2.5rem; border-radius: 50px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: var(--black); font-weight: 700; font-size: 1rem;
+      text-decoration: none; transition: transform .3s, box-shadow .3s;
+      box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(255,215,0,0.5); }
+
+    /* ===== SECTIONS ===== */
+    section { padding: 5rem 1.5rem; }
+    .section-title {
+      text-align: center; font-size: 1.8rem; font-weight: 900; margin-bottom: .5rem;
+    }
+    .section-title span { color: var(--gold-dark); }
+    .section-sub { text-align: center; color: var(--gray); margin-bottom: 3rem; font-size: .9rem; }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    /* ===== ABOUT ===== */
+    .about { background: var(--gray-light); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    .about-img {
+      width: 100%; aspect-ratio: 1; border-radius: 20px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5rem; color: var(--black); overflow: hidden;
+    }
+    .about-img img { width: 100%; height: 100%; object-fit: cover; }
+    .about-text h3 { font-size: 1.4rem; margin-bottom: 1rem; }
+    .about-text p { line-height: 1.9; font-size: .92rem; color: #444; margin-bottom: 1rem; }
+    .about-tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+    .about-tags span {
+      padding: .3rem .8rem; background: var(--black); color: var(--gold);
+      border-radius: 20px; font-size: .75rem; font-weight: 700;
+    }
+
+    /* ===== YOUTUBE STATS ===== */
+    .youtube { background: var(--black); color: var(--white); }
+    .youtube .section-title { color: var(--white); }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 3rem; }
+    .stat-card {
+      text-align: center; padding: 2rem; border-radius: 16px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2);
+    }
+    .stat-card .num { font-size: 2.5rem; font-weight: 900; color: var(--gold); font-family: 'Oswald', sans-serif; }
+    .stat-card .label { font-size: .85rem; color: var(--gray); margin-top: .3rem; }
+    .popular-video {
+      background: rgba(255,255,255,0.05); border-radius: 16px; padding: 2rem;
+      text-align: center; border: 1px solid rgba(255,215,0,0.15);
+    }
+    .popular-video h4 { color: var(--gold); margin-bottom: .5rem; }
+    .popular-video p { color: var(--gray); font-size: .9rem; margin-bottom: 1rem; }
+    .popular-video .views { font-size: 1.5rem; font-weight: 900; color: var(--gold); }
+
+    /* ===== CATEGORIES ===== */
+    .categories { background: var(--white); }
+    .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .card {
+      padding: 2rem; border-radius: 16px; background: var(--gray-light);
+      border: 2px solid transparent; transition: transform .3s, border-color .3s, box-shadow .3s;
+    }
+    .card:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .card .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .card h4 { font-size: 1.1rem; margin-bottom: .5rem; }
+    .card p { font-size: .85rem; color: #666; line-height: 1.7; }
+
+    /* ===== MEMBERSHIP ===== */
+    .membership {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: var(--white); text-align: center;
+    }
+    .membership .section-title { color: var(--white); }
+    .membership-box {
+      max-width: 650px; margin: 0 auto; padding: 3rem 2rem;
+      background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.02));
+      border: 2px solid var(--gold); border-radius: 20px;
+      position: relative; overflow: hidden;
+    }
+    .membership-box::before {
+      content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+      border-radius: 20px; z-index: 0;
+      background: linear-gradient(135deg, var(--gold), transparent, var(--gold));
+      opacity: 0.15;
+    }
+    .membership-box > * { position: relative; z-index: 1; }
+    .membership-box h3 { font-size: 1.5rem; margin-bottom: .5rem; color: var(--gold); }
+    .membership-box .desc { color: var(--gray); margin-bottom: 2rem; font-size: .9rem; }
+    .benefits { list-style: none; text-align: left; margin-bottom: 2.5rem; }
+    .benefits li {
+      padding: .6rem 0; font-size: .92rem; display: flex; align-items: flex-start; gap: .6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .benefits li .check { color: var(--gold); font-size: 1.1rem; flex-shrink: 0; }
+    .btn-membership {
+      display: inline-flex; align-items: center; gap: .6rem;
+      padding: 1.1rem 3rem; border-radius: 50px; border: none; cursor: pointer;
+      background: linear-gradient(135deg, var(--gold), #FFC200, var(--gold-dark));
+      color: var(--black); font-weight: 900; font-size: 1.15rem;
+      text-decoration: none; transition: transform .3s, box-shadow .3s;
+      box-shadow: 0 6px 30px rgba(255,215,0,0.4);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .btn-membership:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 10px 40px rgba(255,215,0,0.6); }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 6px 30px rgba(255,215,0,0.4); }
+      50% { box-shadow: 0 6px 40px rgba(255,215,0,0.7); }
+    }
+
+    /* ===== SNS ===== */
+    .sns { background: var(--gray-light); text-align: center; }
+    .sns-links { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
+    .sns-link {
+      width: 70px; height: 70px; border-radius: 50%;
+      background: var(--black); color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; text-decoration: none;
+      transition: transform .3s, background .3s, box-shadow .3s;
+    }
+    .sns-link:hover { transform: translateY(-5px); background: var(--gold); color: var(--black); box-shadow: 0 8px 25px rgba(255,215,0,0.4); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--black); color: var(--gray); text-align: center;
+      padding: 2rem 1rem; font-size: .8rem;
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none; position: fixed; top: 60px; left: 0; width: 100%;
+        background: rgba(26,26,26,0.98); flex-direction: column;
+        padding: 1.5rem; gap: 1rem;
+      }
+      .nav-links.active { display: flex; }
+      .hamburger { display: flex; }
+      .about-grid { grid-template-columns: 1fr; }
+      .about-img { max-width: 250px; margin: 0 auto; }
+      .stats-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .hero-avatar { width: 120px; height: 120px; font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <a href="#" class="logo">RIHATAMA</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about">プロフィール</a></li>
+      <li><a href="#youtube">YouTube</a></li>
+      <li><a href="#categories">コンテンツ</a></li>
+      <li><a href="#membership">オンライングループ</a></li>
+      <li><a href="#sns">SNS</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="メニュー">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-content" data-aos="fade-up">
+      <div class="hero-avatar">
+        <!-- プロフィール画像をここに差し替え: <img src="your-image.jpg" alt="リハタマ"> -->
+        RT
+      </div>
+      <h1>RIHATAMA ONLY LIFE</h1>
+      <p class="sub">どうもリハタマでっす！！</p>
+      <p class="concept">「日々をルーティーン化して余った時間で好きな事をする。<br>人生を楽しもう！」</p>
+      <a href="https://youtube.com/channel/UC0_LAPo9VCfm1WBGcMf9m3g" target="_blank" rel="noopener" class="btn-primary">
+        <i class="fab fa-youtube"></i> YouTubeチャンネルを見る
+      </a>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="container">
+      <h2 class="section-title" data-aos="fade-up">About <span>リハタマ</span></h2>
+      <p class="section-sub" data-aos="fade-up">理学療法士（PT）× YouTuber</p>
+      <div class="about-grid">
+        <div class="about-img" data-aos="fade-right">
+          <!-- プロフィール画像差し替え: <img src="your-about-image.jpg" alt="リハタマ"> -->
+          🏥
+        </div>
+        <div class="about-text" data-aos="fade-left">
+          <h3>リハタマ ― 理学療法士（PT）</h3>
+          <p>香川県出身。新潟の専門学校で理学療法士を目指し勉強し、<strong>第57回理学療法士国家試験に合格</strong>。現在は理学療法士として活動中。</p>
+          <p>過去に辛い経験をしたことがきっかけで、意識高い生き方を追求するように。「日々をルーティーン化して余った時間で好きな事をする」をモットーに、<strong>2019年11月よりYouTube活動を開始</strong>。</p>
+          <p>ルーティーン・自己啓発・理学療法士としての知識を発信し、同じ志を持つ仲間と繋がることを目指しています。</p>
+          <div class="about-tags">
+            <span>理学療法士</span>
+            <span>YouTuber</span>
+            <span>ルーティーン</span>
+            <span>自己啓発</span>
+            <span>香川県出身</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- YOUTUBE -->
+  <section class="youtube" id="youtube">
+    <div class="container">
+      <h2 class="section-title" data-aos="fade-up">YouTube <span>Activity</span></h2>
+      <p class="section-sub" data-aos="fade-up" style="color:#888;">チャンネル「リハタマ」の活動実績</p>
+      <div class="stats-grid">
+        <div class="stat-card" data-aos="zoom-in" data-aos-delay="0">
+          <div class="num">775</div>
+          <div class="label">チャンネル登録者数</div>
+        </div>
+        <div class="stat-card" data-aos="zoom-in" data-aos-delay="100">
+          <div class="num">193</div>
+          <div class="label">動画本数</div>
+        </div>
+        <div class="stat-card" data-aos="zoom-in" data-aos-delay="200">
+          <div class="num">169,000+</div>
+          <div class="label">総再生回数</div>
+        </div>
+      </div>
+      <div class="popular-video" data-aos="fade-up">
+        <h4><i class="fas fa-crown"></i> 人気動画</h4>
+        <p>理学療法士学生のアルバイト無い日の勉強時間！モチベーション動画</p>
+        <div class="views"><i class="fas fa-play"></i> 2.9万再生</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="categories" id="categories">
+    <div class="container">
+      <h2 class="section-title" data-aos="fade-up">Contents <span>カテゴリー</span></h2>
+      <p class="section-sub" data-aos="fade-up">リハタマが発信するコンテンツ</p>
+      <div class="cards-grid">
+        <div class="card" data-aos="fade-up" data-aos-delay="0">
+          <div class="icon">🏥</div>
+          <h4>理学療法士の知識</h4>
+          <p>解剖学・勉強法・国家試験対策など、理学療法士を目指す方に役立つ情報を発信しています。</p>
+        </div>
+        <div class="card" data-aos="fade-up" data-aos-delay="100">
+          <div class="icon">📅</div>
+          <h4>ルーティーン・vlog</h4>
+          <p>日常の生活習慣を最適化するルーティーン動画や、リアルな日常のvlogをお届けします。</p>
+        </div>
+        <div class="card" data-aos="fade-up" data-aos-delay="200">
+          <div class="icon">🧠</div>
+          <h4>リハタマの思考</h4>
+          <p>自己啓発・マインドセット・生き方について、リハタマの考えをシェアしています。</p>
+        </div>
+        <div class="card" data-aos="fade-up" data-aos-delay="300">
+          <div class="icon">📚</div>
+          <h4>本の要約</h4>
+          <p>読んだ本の知識をインプット＆アウトプット。忙しい方にもわかりやすくまとめてお届けします。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEMBERSHIP -->
+  <section class="membership" id="membership">
+    <div class="container">
+      <h2 class="section-title" data-aos="fade-up">Online <span>Group</span></h2>
+      <p class="section-sub" data-aos="fade-up" style="color:#888;">リハタマのオンライングループ</p>
+      <div class="membership-box" data-aos="zoom-in">
+        <h3><i class="fas fa-crown"></i> リハタマ塾</h3>
+        <p class="desc">メンバー限定の入会制コミュニティ。<br>ここだけの話、限定情報を共有しています。</p>
+        <ul class="benefits">
+          <li><span class="check">✅</span> メンバー限定の動画・情報にアクセス</li>
+          <li><span class="check">✅</span> リハタマと直接やりとりできるコミュニティ</li>
+          <li><span class="check">✅</span> 理学療法士・健康・自己啓発の深い情報</li>
+          <li><span class="check">✅</span> グループ内限定のコンテンツ・ここだけの話</li>
+          <li><span class="check">✅</span> 同じ志を持つ仲間とのつながり</li>
+        </ul>
+        <a href="#" class="btn-membership">
+          <i class="fas fa-door-open"></i> 入会する・詳しく見る
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SNS -->
+  <section class="sns" id="sns">
+    <div class="container">
+      <h2 class="section-title" data-aos="fade-up">Follow <span>Me</span></h2>
+      <p class="section-sub" data-aos="fade-up">各SNSをフォローして最新情報をチェック！</p>
+      <div class="sns-links" data-aos="fade-up">
+        <a href="https://youtube.com/channel/UC0_LAPo9VCfm1WBGcMf9m3g" target="_blank" rel="noopener" class="sns-link" aria-label="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+        <a href="https://www.instagram.com/kuwachan0626/" target="_blank" rel="noopener" class="sns-link" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://twitter.com/kaichandaichan" target="_blank" rel="noopener" class="sns-link" aria-label="X (Twitter)">
+          <i class="fab fa-x-twitter"></i>
+        </a>
+        <a href="https://lin.ee/1NvIpPQjH" target="_blank" rel="noopener" class="sns-link" aria-label="LINE公式">
+          <i class="fab fa-line"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2024 リハタマ All Rights Reserved.</p>
+  </footer>
+
+  <!-- AOS Animation -->
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    // AOS init
+    AOS.init({ duration: 800, once: true, offset: 80 });
+
+    // Navbar scroll
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Hamburger menu
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+    });
+    // Close menu on link click
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => navLinks.classList.remove('active'));
+    });
+
+    // Counter animation for stats
+    const counters = document.querySelectorAll('.stat-card .num');
+    const observerOptions = { threshold: 0.5 };
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const text = el.textContent;
+          // Parse number
+          const numMatch = text.replace(/,/g, '').match(/(\d+)/);
+          if (numMatch) {
+            const target = parseInt(numMatch[1]);
+            const suffix = text.replace(/[\d,]/g, '');
+            let current = 0;
+            const step = Math.max(1, Math.floor(target / 60));
+            const timer = setInterval(() => {
+              current += step;
+              if (current >= target) {
+                current = target;
+                clearInterval(timer);
+              }
+              el.textContent = current.toLocaleString() + suffix;
+            }, 20);
+          }
+          counterObserver.unobserve(el);
+        }
+      });
+    }, observerOptions);
+    counters.forEach(c => counterObserver.observe(c));
+  </script>
+</body>
 </html>
